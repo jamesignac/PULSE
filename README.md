@@ -1,4 +1,4 @@
-# PULSE: Personalized Updates & Learning System for Health Experts
+# PULSE: Personalized Updates & Learning System for (Health) Experts
 
 **PULSE** is an AI-powered agent that delivers timely, personalized news and updates tailored for healthcare professionals.  
 Built with **Python** and **Streamlit**, it offers a seamless interface, smart filtering, and topic tracking to help users stay current on research, trends, and breaking health news.
@@ -20,3 +20,9 @@ Built with **Python** and **Streamlit**, it offers a seamless interface, smart f
 ```bash
 git clone https://github.com/jamesignac/PULSE.git
 cd PULSE
+python3 -m venv venv
+source venv/bin/activate    
+venv\Scripts\activate
+
+pip install --upgrade pip
+pip install -r requirements.txt
