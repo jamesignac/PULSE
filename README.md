@@ -31,3 +31,7 @@ Built with **Python** and **Streamlit**, it offers a seamless interface, smart f
     GOOGLE_API_KEY="your-google-api-key"
 ### 5. Run the application
     streamlit run app.py
+---
+
+## 🙋‍♂️ Author
+Created by [James Ignacio](https://github.com/jamesignac)
