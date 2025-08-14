@@ -17,8 +17,8 @@ Built with **Python** and **Streamlit**, it offers a seamless interface, smart f
 ## 🛠️ Setup Instructions
 
 ### 1. Clone the repository
-```git clone https://github.com/jamesignac/PULSE.git```
-```cd PULSE```
+  git clone https://github.com/jamesignac/PULSE.git
+  cd PULSE ```
 
 python3 -m venv venv
 source venv/bin/activate    
