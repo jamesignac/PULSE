@@ -1,0 +1,17 @@
+streamlit
+langchain
+langchain-openai
+langchain-community
+langchain-core
+langchain-tavily
+openai
+tavily-python
+sqlite3
+python-dotenv
+passlib
+fastapi
+uvicorn
+pydantic
+python-multipart
+google-generativeai
+langchain-google-genai
