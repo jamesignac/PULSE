@@ -1,5 +1,6 @@
 import streamlit as st
 from auth import login_user, register_user, hash_password
+from specialty import PROFESSION_SPECIALTIES
 from database import init_db
 from agents.news_agent import create_news_agent
 from agents.chat_agent import create_chat_agent
@@ -26,6 +27,10 @@ if 'news_agent' not in st.session_state:
     st.session_state.news_agent = None
 if 'chat_agent' not in st.session_state:
     st.session_state.chat_agent = None
+if 'profession' not in st.session_state:
+    st.session_state.profession = None
+if 'specialty' not in st.session_state:
+    st.session_state.specialty = None
 
 # Authentication
 def show_auth():
@@ -44,19 +49,27 @@ def show_auth():
                     st.error("Invalid credentials")
     
     with tab2:
+        # Profession and specialty selection OUTSIDE the form for dynamic update
+        profession = st.selectbox(
+            "Profession",
+            list(PROFESSION_SPECIALTIES.keys()),
+            key="profession_select_dynamic"
+        )
+        specialty = st.selectbox(
+            "Specialty",
+            PROFESSION_SPECIALTIES[profession],
+            key="specialty_select_dynamic"
+        )
         with st.form("register_form"):
             first_name = st.text_input("First Name")
             last_name = st.text_input("Last Name")
             email = st.text_input("Email")
             password = st.text_input("Password", type="password")
             confirm_password = st.text_input("Confirm Password", type="password")
-            profession = st.selectbox(
-                "Profession",
-                ["Doctor", "Nurse", "Pharmacist", "Researcher", "Administrator", "Other"]
-            )
-            specialty = st.text_input("Specialty (optional)")
+            # Use profession and specialty selected above
+            st.write(f"Profession: {profession}")
+            st.write(f"Specialty: {specialty}")
             submitted = st.form_submit_button("Register")
-            
             if submitted:
                 if password != confirm_password:
                     st.error("Passwords don't match")
@@ -125,33 +138,34 @@ def show_main():
         for message in st.session_state.messages:
             with st.chat_message(message["role"]):
                 st.markdown(message["content"])
-        
-        # Handle user input
-        if prompt := st.chat_input("Ask about healthcare news or its implications"):
+
+        # Chat input always at the bottom
+        prompt = st.chat_input("Ask about healthcare news or its implications")
+        if prompt:
             # Add user message to chat history
             st.session_state.messages.append({"role": "user", "content": prompt})
-            
+
             # Display user message
             with st.chat_message("user"):
                 st.markdown(prompt)
-            
+
             # Generate AI response
             with st.chat_message("assistant"):
                 with st.spinner("Thinking..."):
                     # Get the conversation history in the correct format
                     history = "\n".join(
-                        f"{msg['role']}: {msg['content']}" 
+                        f"{msg['role']}: {msg['content']}"
                         for msg in st.session_state.messages[:-1]
                     )
-                    
+
                     # Get AI response
                     response = st.session_state.chat_agent.predict(
                         input=prompt,
                         history=history
                     )
-                    
+
                     st.markdown(response)
-            
+
             # Add assistant response to chat history
             st.session_state.messages.append({"role": "assistant", "content": response})
 
