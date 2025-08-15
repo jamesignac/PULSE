@@ -126,48 +126,43 @@ def show_main():
     
     with tab2:
         st.header("Discuss News & Implications")
-        
-        # Initialize messages if not exists
+
+        # Initialize messages
         if "messages" not in st.session_state:
-            st.session_state.messages = []
-            # Initialize with a welcome message
-            welcome_msg = f"Hello! I'm your healthcare AI assistant. How can I help you today?"
-            st.session_state.messages.append({"role": "assistant", "content": welcome_msg})
-        
-        # Display chat messages
+            st.session_state.messages = [
+                {"role": "assistant", "content": "Hello! I'm PULSE, your healthcare AI assistant. How can I help you today?"}
+            ]
+
+        # --- Handle new input AFTER displaying messages ---
+        # Display all messages first
         for message in st.session_state.messages:
             with st.chat_message(message["role"]):
                 st.markdown(message["content"])
 
-        # Chat input always at the bottom
-        prompt = st.chat_input("Ask about healthcare news or its implications")
-        if prompt:
-            # Add user message to chat history
+        # Now place chat input LAST so it stays at bottom
+        if prompt := st.chat_input("Ask about healthcare news or its implications"):
+            # Add user message
             st.session_state.messages.append({"role": "user", "content": prompt})
 
-            # Display user message
-            with st.chat_message("user"):
-                st.markdown(prompt)
-
             # Generate AI response
-            with st.chat_message("assistant"):
-                with st.spinner("Thinking..."):
-                    # Get the conversation history in the correct format
-                    history = "\n".join(
-                        f"{msg['role']}: {msg['content']}"
-                        for msg in st.session_state.messages[:-1]
-                    )
+            with st.spinner("Thinking..."):
+                history = "\n".join(
+                    f"{msg['role']}: {msg['content']}"
+                    for msg in st.session_state.messages[:-1]
+                )
+                response = st.session_state.chat_agent.predict(
+                    input=prompt,
+                    history=history
+                )
 
-                    # Get AI response
-                    response = st.session_state.chat_agent.predict(
-                        input=prompt,
-                        history=history
-                    )
-
-                    st.markdown(response)
-
-            # Add assistant response to chat history
+            # Add assistant message
             st.session_state.messages.append({"role": "assistant", "content": response})
+
+            # Rerun immediately to show new messages above input
+            st.rerun()
+
+
+
 
 # Show appropriate interface based on auth state
 if st.session_state.user:
