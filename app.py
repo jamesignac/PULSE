@@ -1,9 +1,11 @@
+from functions import extract_ai_contents
 import streamlit as st
 from auth import login_user, register_user, hash_password
 from specialty import PROFESSION_SPECIALTIES
 from database import init_db
 from agents.news_agent import create_news_agent
 from agents.chat_agent import create_chat_agent
+from functions import display_results, extract_ai_contents
 from dotenv import load_dotenv
 import os
 import sqlite3
@@ -11,11 +13,11 @@ import os.path
 from pathlib import Path
 import json
 
+
 # Initialize database
 init_db()
 
 load_dotenv('.env')
-
 
 # App title
 st.title("PULSE: Personalized Updates & Learning System for Experts")
@@ -31,6 +33,8 @@ if 'profession' not in st.session_state:
     st.session_state.profession = None
 if 'specialty' not in st.session_state:
     st.session_state.specialty = None
+if "newsletter_results" not in st.session_state:
+    st.session_state.newsletter_results = None
 
 # Authentication
 def show_auth():
@@ -108,21 +112,41 @@ def show_main():
     
     with tab1:
         st.header("Your Personalized Healthcare News")
+        
+        # Add debug toggle to sidebar
+        debug_mode = st.sidebar.checkbox("Enable Debug Mode", value=False)
+        
         if st.button("Get Today's Updates"):
             with st.spinner("Fetching relevant news..."):
                 query = f"Latest healthcare news relevant for {user['profession']}"
                 if user.get('specialty'):
                     query += f" specializing in {user['specialty']}"
                 try:
-                    result = st.session_state.news_agent.invoke({"input": query})
-                    if isinstance(result, dict) and 'output' in result:
-                        st.markdown(result['output'])
-                    else:
-                        st.error("No news was returned.")
+                    result = st.session_state.news_agent.invoke({"messages": query})
+                    st.session_state.newsletter_results = result # Store results in session state
+
+                    # Debug output if enabled
+                    if debug_mode:
+                        st.sidebar.subheader("Debug Information")
+                        st.sidebar.json(result, expanded=False)
+                    
+                    if st.session_state.newsletter_results:
+                        content = extract_ai_contents(st.session_state.newsletter_results)
+                        display_results(content)
+                    
+                    # Show raw output in debug mode
+                    if debug_mode:
+                        with st.expander("Raw Output"):
+                            st.text(content)
+                            
                 except ValueError as e:
                     st.error(f"Agent error: {e}")
+                    if debug_mode:
+                        st.exception(e)  # Show full traceback
                 except Exception as e:
                     st.error(f"Unexpected error: {e}")
+                    if debug_mode:
+                        st.exception(e)  # Show full traceback
     
     with tab2:
         st.header("Discuss News & Implications")
