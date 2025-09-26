@@ -151,11 +151,15 @@ def show_main():
     with tab2:
         st.header("Discuss News & Implications")
 
-        # Initialize messages
+        # Initialize messages and thread_id for memory
         if "messages" not in st.session_state:
             st.session_state.messages = [
                 {"role": "assistant", "content": "Hello! I'm PULSE, your healthcare AI assistant. How can I help you today?"}
             ]
+        
+        # Create a unique thread_id for this user's conversation
+        if "chat_thread_id" not in st.session_state:
+            st.session_state.chat_thread_id = f"user_{user['email']}_chat"
 
         # --- Handle new input AFTER displaying messages ---
         # Display all messages first
@@ -170,14 +174,24 @@ def show_main():
 
             # Generate AI response
             with st.spinner("Thinking..."):
-                history = "\n".join(
-                    f"{msg['role']}: {msg['content']}"
-                    for msg in st.session_state.messages[:-1]
+                # For LangGraph agents with memory, we need to use invoke with thread_id
+                response = st.session_state.chat_agent.invoke(
+                    {"messages": [("user", prompt)]},
+                    config={"configurable": {"thread_id": st.session_state.chat_thread_id}}
                 )
-                response = st.session_state.chat_agent.predict(
-                    input=prompt,
-                    history=history
-                )
+                
+                # Extract the AI response from the agent output
+                if isinstance(response, dict) and "messages" in response:
+                    # Get the last AI message from the response
+                    ai_messages = [msg for msg in response["messages"] 
+                                 if hasattr(msg, 'content') and msg.content and 
+                                 hasattr(msg, '__class__') and 'AI' in msg.__class__.__name__]
+                    if ai_messages:
+                        response = ai_messages[-1].content
+                    else:
+                        response = "I apologize, but I couldn't generate a response. Please try again."
+                else:
+                    response = str(response)
 
             # Add assistant message
             st.session_state.messages.append({"role": "assistant", "content": response})
